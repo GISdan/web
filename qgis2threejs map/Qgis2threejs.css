@@ -278,7 +278,7 @@ body {
 
 #northarrow {
   position: absolute;
-  right: 50px;
+  left: 50px;
   top: 50px;
   width: 75px;
   height: 75px;

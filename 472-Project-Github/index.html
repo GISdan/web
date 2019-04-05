@@ -1,0 +1,135 @@
+<html><head>
+    <title>Hurricane Cost in the United States</title>
+
+    <script src="deckgl.min.js"></script>
+
+    <script src="mapbox-gl.js"></script>
+
+    <style type="text/css">
+      body {
+        width: 100vw;
+        height: 100vh;
+        margin: 0;
+      }
+      #tooltip:empty {
+        display: none;
+      }
+      #tooltip {
+        font-family: Helvetica, Arial, sans-serif;
+        font-size: 16px;
+        position: absolute;
+        padding: 4px;
+        margin: 8px;
+        background: rgba(125, 113, 113, 0.8);
+        color: #fff;
+        max-width: 300px;
+        font-size: 13px;
+        z-index: 9;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="tooltip"></div>
+  
+
+  <script type="text/javascript">
+
+    const {DeckGL, GeoJsonLayer} = deck;
+
+    const LIGHT_SETTINGS = {
+      lightsPosition: [-125, 50.5, 5000, -122.8, 48.5, 8000],
+      ambientRatio: 0.2,
+      diffuseRatio: 0.5,
+      specularRatio: 0.3,
+      lightsStrength: [2.0, 0.0, 1.0, 0.0],
+      numberOfLights: 2
+    };
+
+    const COLOR_SCALE = [
+      // negative
+      [65, 182, 196],
+      [127, 205, 187],
+      [199, 233, 180],
+      [237, 248, 177],
+
+      // positive
+      [252,251,253],
+      [212, 201, 242],
+      [164, 164, 221],
+      [188,189,220],
+      [158,154,200],
+      [128,125,186],
+      [106,81,163],
+      [84,39,143],
+      [63,0,125]
+    ];
+
+    const geojsonLayer = new GeoJsonLayer({
+      data: 'https://raw.githubusercontent.com/dminney29/web/master/472-Project-Github/Hurricane_data_final.geojson',
+      opacity: 0.88,
+      stroked: true,
+      filled: true,
+      extruded: true,
+      wireframe: true,
+      fp64: true,
+      lightSettings: LIGHT_SETTINGS,
+
+    getElevation: f => Math.sqrt(f.properties.Cost)*2,
+    //getFillColor: [155, 255, 158],
+    getFillColor: f => colorScale(f.properties.Pop_risk_cat3),
+    getLineColor: [25, 25, 25],
+
+      pickable: true,
+      onHover: updateTooltip
+    });
+
+    new DeckGL({
+      mapboxApiAccessToken: 'pk.eyJ1IjoiZ2VvZ2RtaW4iLCJhIjoiY2pyNGhidzVuMDN1MzN5cGhkdWphMmFqaiJ9.ZiS0B_-XXYHuYpIIZH5nfQ',
+      mapStyle: 'mapbox://styles/geogdmin/cjsy9lr0e0kq41fqm44yg6gdp',
+      latitude: 30,
+      longitude: -91,
+      zoom: 3,
+      maxZoom: 16,
+      pitch: 45,
+      layers: [geojsonLayer]
+    });
+
+    function colorScale(x) {
+      const i = Math.round(x * 0.0000011) + 5;
+      if (x < 0) {
+        return COLOR_SCALE[i] || COLOR_SCALE[0];
+      }
+      else if (x===0){
+        return [255, 255, 255];
+      }
+      return COLOR_SCALE[i] || COLOR_SCALE[COLOR_SCALE.length - 10];
+     
+      
+    }
+      
+    function updateTooltip({x, y, object}) {
+      const tooltip = document.getElementById('tooltip');
+
+      if (object) {
+        tooltip.style.top = `${y}px`;
+        tooltip.style.left = `${x}px`;
+        tooltip.innerHTML = `
+    <div><b>State &nbsp;</b></div>
+    <div><div>${object.properties.NAME}</sup></div></div>
+    <div><b>Hurricane Cost to State </b></div>
+    <div>${object.properties.Cost}</div>
+    <div><b>Population at Risk of Storm Surge </b></div>
+    <div>${object.properties.Pop_risk_cat3}</div>
+    `;
+      } else { 
+        tooltip.innerHTML = '';
+      }
+    }
+    
+     
+
+  </script>
+
+</body></html>
